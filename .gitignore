@@ -1,0 +1,14 @@
+build
+logs
+target
+/.idea
+/.idea_modules
+/.classpath
+/.gradle
+/.project
+/.settings
+/RUNNING_PID
+/conf/custom.conf
+/conf/silhouette.conf
+node_modules
+/ui/src/environments/custom.ts
