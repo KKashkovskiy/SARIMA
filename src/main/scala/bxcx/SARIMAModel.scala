@@ -29,13 +29,12 @@ class SARIMAModel(rawData: Vector[Double], p: Int, d: Int, q: Int, seasons: Seq[
 
     def createVector(idx: Int, data: Vector[Double] = data) = {
         val diffs: Vector[Double] = finiteDiffs(data, d)
-        val stationary: Vector[Double] = finiteDiffs(data, 1)
-        var v = (1.0 +: (1 to p).map(i => diffs(idx - i))) ++ (1 to q).map(j => stationary(idx - j))
+        var v = (1.0 +: (1 until p).map(i => diffs(idx - i))) ++ (1 until q).map(j => data(idx - j))
         seasons.foreach { season =>
             val sDiffs = finiteDiffs(data, season.d, season.period)
             if (idx > Seq(season.p, season.q, season.period).max) {
                 v = v ++ (season.period until season.period + season.p).map(i => sDiffs(idx - i - season.d))
-                v = v ++ (season.period until season.period + season.q).map(i => stationary(idx - i))
+                v = v ++ (season.period until season.period + season.q).map(i => data(idx - i))
             } else v = v :+ 0.0 :+ 0.0
         }
         DenseVector(v: _ *)
@@ -48,7 +47,7 @@ class SARIMAModel(rawData: Vector[Double], p: Int, d: Int, q: Int, seasons: Seq[
     val coefVectors = createVectors(Seq(p, q).max, d)
 
     val resultV = data.indices.drop(Seq(p, q).max).dropRight(d).map { idx =>
-        diffs(idx) - stationary(idx)
+        diffs(idx)
     }
 
     val coefMatrix: DenseMatrix[Double] = DenseMatrix(coefVectors: _ *)
@@ -62,7 +61,7 @@ class SARIMAModel(rawData: Vector[Double], p: Int, d: Int, q: Int, seasons: Seq[
         def go(data: Vector[Double]): Vector[Double] = {
             if (data.length >= s) data else {
                 val newData = createVector(data.length - 1, data) * abcCoenfs
-                go(data ++ newData.data.toVector)
+                go(data :+ newData.data.toVector.sum)
             }
         }
         go(data)

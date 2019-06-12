@@ -17,6 +17,7 @@ object Sarima extends App {
 
     val diff = data2.zip(result.drop(730)).map{ case (b, p) => b - p}
 
+    result.drop(720).foreach(println)
     println(avg(diff))
 
 }
